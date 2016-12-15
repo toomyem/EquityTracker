@@ -5,9 +5,9 @@
 #property strict
 #property description "Automatically close all open and pending position based on desired equity level"
 
-input double WantedEquity = 0.0;
-input double WantedGain = 3.55;
-input double SLK = 75;
+input double WantedEquity = 0.0; // Wanted equity (in currency)
+input double WantedGain = 3.55;  // Wanted equity gain (in %)
+input double SLK = 75; // Stop loss (% of balance)
 
 double TargetEquity = 0;
 double SlkEquity = 0;
