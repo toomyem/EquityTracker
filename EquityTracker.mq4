@@ -6,11 +6,12 @@
 #property description "Automatically close all open and pending position based on desired equity level"
 
 input double WantedEquity = 0.0; // Wanted equity (in currency)
-input double WantedGain = 3.55;  // Wanted equity gain (in %)
-input double SLK = 75; // Stop loss (% of balance)
+input double WantedGain = 0.0;   // Wanted equity gain (in %)
+input double SLEquity = 0.0;     // Minimum equity before SL
+input double SLPercent = 75;     // SL level (% of balance)
 
 double TargetEquity = 0;
-double SlkEquity = 0;
+double MinimumEquity = 0;
 
 int OnInit() {
    int InitCode = INIT_SUCCEEDED;
@@ -21,9 +22,15 @@ int OnInit() {
       TargetEquity = AccountBalance() * (1 + WantedGain/100.0);
    }
 
-   if(TargetEquity > AccountEquity()) {
+   if(SLEquity > 0.0) {
+      MinimumEquity = SLEquity;
+   } else {
+      MinimumEquity = AccountBalance() * (SLPercent/100.0);
+   }
+   
+   if(TargetEquity > AccountEquity() && MinimumEquity < AccountEquity()) {
       CreateLabel("TargetEquity", 10, 50, StringFormat("Target Equity = %G", TargetEquity));
-      CreateLabel("SLK", 10, 50-18);
+      CreateLabel("MinimumEquity", 10, 50-18, StringFormat("Minimum Equity = %G", MinimumEquity));
    } else {
       InitCode = INIT_PARAMETERS_INCORRECT;
    }
@@ -53,17 +60,17 @@ void OnDeinit(const int reason) {
 }
 
 void OnTick() {
-   if(SlkEquity < AccountBalance() * (SLK/100.0)) {
-      SlkEquity = AccountBalance() * (SLK/100.0);
-      UpdateLabel("SLK", StringFormat("SLK = %G (%G%%)", SlkEquity, SLK));
+   if(SLEquity == 0.0 && MinimumEquity < AccountBalance() * (SLPercent/100.0)) {
+      MinimumEquity = AccountBalance() * (SLPercent/100.0);
+      UpdateLabel("MinimumEquity", StringFormat("Minimum Equity = %G", MinimumEquity));
    }
-      
+
    if(OrdersTotal() > 0) {
       if(AccountEquity() > TargetEquity) {
          Print("Target equity reached, closing all positions");
          CloseAllOrders();
          ExpertRemove();
-      } else if(AccountEquity() <= SlkEquity) {
+      } else if(AccountEquity() < MinimumEquity) {
          Print("Equity dropped too low, closing all positions");
          CloseAllOrders();
          ExpertRemove();
