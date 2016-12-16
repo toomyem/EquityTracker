@@ -65,13 +65,15 @@ void OnTick() {
       UpdateLabel("MinimumEquity", StringFormat("Minimum Equity = %G", MinimumEquity));
    }
 
+   double equity = AccountEquity();
+   
    if(OrdersTotal() > 0) {
-      if(AccountEquity() > TargetEquity) {
-         Print("Target equity reached, closing all positions");
+      if(equity > TargetEquity) {
+         PrintFormat("Target equity reached (%G > %G), closing all positions", equity, TargetEquity);
          CloseAllOrders();
          ExpertRemove();
-      } else if(AccountEquity() < MinimumEquity) {
-         Print("Equity dropped too low, closing all positions");
+      } else if(equity < MinimumEquity) {
+         PrintFormat("Equity dropped too low (%G < %G), closing all positions", equity, MinimumEquity);
          CloseAllOrders();
          ExpertRemove();
       }
